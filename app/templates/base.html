@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>GCSU MIS Starter Kit</title>
+    <title>Gage Riley</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -118,7 +118,7 @@
 <body>
     <nav class="navbar navbar-expand-lg navbar-gcsu">
         <a class="navbar-brand" href="{{ url_for('index') }}">
-            <i class="fas fa-home me-2"></i>GCSU MIS Starter Kit
+            <i class="fas fa-home me-2"></i>Gage Riley
         </a>
         <div class="collapse navbar-collapse">
             <ul class="navbar-nav me-auto">
@@ -128,8 +128,23 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('examples.show_examples') }}">
-                        <i class="fas fa-database me-1"></i>Examples
+                    <a class="nav-link" href="{{ url_for('tickers.show_tickers') }}">
+                        <i class="fas fa-chart-line me-1"></i>Stock Tickers
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('weather.show_weather') }}">
+                        <i class="fas fa-cloud-sun me-1"></i>Weather
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('movies.show_movies') }}">
+                        <i class="fas fa-film me-1"></i>Movies
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('chatbot.show_chatbot') }}">
+                        <i class="fas fa-robot me-1"></i>AI Chatbot
                     </a>
                 </li>
             </ul>

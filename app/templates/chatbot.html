@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row mt-4">
+    <div class="col-md-12">
+        <h1><i class="fas fa-robot me-2"></i>AI Chatbot</h1>
+        <p class="lead">Ask questions and get AI-generated responses powered by Groq</p>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-8 offset-md-2">
+        <div class="card mb-4">
+            <div class="card-body">
+                <h3><i class="fas fa-comments me-2"></i>Ask a Question</h3>
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="question" class="form-label">Your Question</label>
+                        <textarea class="form-control" id="question" name="question" rows="4"
+                                  placeholder="e.g., Explain quantum computing in simple terms..." required>{{ current_question if current_question else '' }}</textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="model" class="form-label">AI Model</label>
+                        <select class="form-select" id="model" name="model">
+                            {% for model_id, model_name in models.items() %}
+                            <option value="{{ model_id }}">{{ model_name }}</option>
+                            {% endfor %}
+                        </select>
+                        <small class="text-muted">Different models have different strengths and speeds</small>
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-paper-plane me-1"></i>Submit Question
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        {% if response %}
+        <div class="card mb-4 border-success">
+            <div class="card-header bg-success text-white">
+                <h4 class="mb-0"><i class="fas fa-robot me-2"></i>AI Response</h4>
+            </div>
+            <div class="card-body">
+                <p class="card-text" style="white-space: pre-wrap;">{{ response }}</p>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if history %}
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h3 class="mb-0"><i class="fas fa-history me-2"></i>Chat History (Last 20)</h3>
+                    <button type="button" class="btn btn-danger btn-sm"
+                            data-bs-toggle="modal" data-bs-target="#clearHistoryModal">
+                        <i class="fas fa-trash-alt me-1"></i>Clear All History
+                    </button>
+                </div>
+                <hr>
+                {% for chat in history %}
+                <div class="mb-4">
+                    <div class="card bg-light">
+                        <div class="card-body">
+                            <h6 class="card-subtitle mb-2 text-muted">
+                                <i class="fas fa-user me-1"></i>Question:
+                                <small class="float-end">
+                                    {% if chat.model %}
+                                    <span class="badge bg-info me-2">{{ models.get(chat.model, chat.model) }}</span>
+                                    {% endif %}
+                                    {{ chat.created_at.strftime('%Y-%m-%d %I:%M %p') if chat.created_at else 'N/A' }}
+                                </small>
+                            </h6>
+                            <p class="card-text">{{ chat.question }}</p>
+                        </div>
+                    </div>
+                    <div class="card mt-2 border-success">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h6 class="card-subtitle mb-0 text-success">
+                                    <i class="fas fa-robot me-1"></i>Answer:
+                                </h6>
+                                <button type="button" class="btn btn-sm btn-outline-danger"
+                                        data-bs-toggle="modal" data-bs-target="#deleteChatModal{{ chat.id }}">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                            <p class="card-text" style="white-space: pre-wrap;">{{ chat.answer }}</p>
+                        </div>
+                    </div>
+                </div>
+                {% if not loop.last %}<hr>{% endif %}
+                {% endfor %}
+            </div>
+        </div>
+        {% else %}
+        <div class="card">
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>No chat history yet. Ask a question to get started!
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Delete Modals for Individual Chat Messages -->
+{% if history %}
+{% for chat in history %}
+<div class="modal fade" id="deleteChatModal{{ chat.id }}" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Confirm Delete
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this chat message?</p>
+                <div class="card bg-light">
+                    <div class="card-body">
+                        <strong>Question:</strong><br>
+                        <p class="mb-0">{{ chat.question[:150] }}{% if chat.question|length > 150 %}...{% endif %}</p>
+                    </div>
+                </div>
+                <p class="text-danger mt-3 mb-0">
+                    <i class="fas fa-exclamation-circle me-1"></i>This action cannot be undone!
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>Cancel
+                </button>
+                <a href="{{ url_for('chatbot.delete_chat', chat_id=chat.id) }}" class="btn btn-danger">
+                    <i class="fas fa-trash me-1"></i>Delete Message
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+<!-- Clear All History Modal -->
+<div class="modal fade" id="clearHistoryModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Clear All History
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to clear <strong>all</strong> chat history?</p>
+                <div class="alert alert-warning">
+                    <i class="fas fa-info-circle me-2"></i>
+                    This will permanently delete all {{ history|length }} chat message(s) in your history.
+                </div>
+                <p class="text-danger mb-0">
+                    <i class="fas fa-exclamation-circle me-1"></i>This action cannot be undone!
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>Cancel
+                </button>
+                <a href="{{ url_for('chatbot.clear_history') }}" class="btn btn-danger">
+                    <i class="fas fa-trash-alt me-1"></i>Clear All History
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}

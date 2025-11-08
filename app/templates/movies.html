@@ -1,0 +1,273 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row mt-4">
+    <div class="col-md-12">
+        <h1><i class="fas fa-film me-2"></i>Movies Database</h1>
+        <p class="lead">Search and manage your movie collection with OMDB API integration</p>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h3><i class="fas fa-search me-2"></i>Search for a Movie</h3>
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Movie Title <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="title" name="title"
+                               placeholder="e.g., The Matrix, Inception, Interstellar" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="year" class="form-label">Year (Optional)</label>
+                        <input type="text" class="form-control" id="year" name="year"
+                               placeholder="e.g., 2010" maxlength="4">
+                        <small class="text-muted">Specify year for more accurate results</small>
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search me-1"></i>Search & Add Movie
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h3><i class="fas fa-info-circle me-2"></i>How It Works</h3>
+                <ul>
+                    <li>Enter a movie title to search the OMDB database</li>
+                    <li>Add year for movies with similar titles (optional)</li>
+                    <li>All movie details are automatically fetched and saved</li>
+                    <li>Click on a movie to view full details including ratings</li>
+                    <li>Edit or delete movies from your collection</li>
+                </ul>
+                {% if api_configured %}
+                <div class="alert alert-success">
+                    <i class="fas fa-check-circle me-1"></i><strong>API Configured!</strong> Your OMDB API key is active.
+                </div>
+                {% else %}
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-1"></i><strong>API Key Not Configured!</strong> Please add your OMDB API key to the .env file.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-body">
+                <h3><i class="fas fa-list me-2"></i>Your Movie Collection</h3>
+                {% if movies %}
+                <div class="row">
+                    {% for movie in movies %}
+                    <div class="col-md-6 col-lg-4 mb-4">
+                        <div class="card h-100">
+                            {% if movie.poster and movie.poster != 'N/A' %}
+                            <img src="{{ movie.poster }}" class="card-img-top" alt="{{ movie.title }}"
+                                 style="height: 400px; object-fit: cover;">
+                            {% else %}
+                            <div class="card-img-top bg-secondary text-white d-flex align-items-center justify-content-center"
+                                 style="height: 400px;">
+                                <i class="fas fa-film fa-5x"></i>
+                            </div>
+                            {% endif %}
+                            <div class="card-body">
+                                <h5 class="card-title">{{ movie.title }}</h5>
+                                <p class="card-text">
+                                    <strong>Year:</strong> {{ movie.year }}<br>
+                                    {% if movie.genre and movie.genre != 'N/A' %}
+                                    <strong>Genre:</strong> {{ movie.genre }}<br>
+                                    {% endif %}
+                                    <strong>Director:</strong> {{ movie.director }}<br>
+                                    {% if movie.imdb_rating and movie.imdb_rating != 'N/A' %}
+                                    <strong>IMDB:</strong> <span class="badge bg-warning text-dark">⭐ {{ movie.imdb_rating }}</span><br>
+                                    {% endif %}
+                                    {% if movie.plot and movie.plot != 'N/A' %}
+                                    <strong>Plot:</strong> {{ movie.plot[:100] }}{% if movie.plot|length > 100 %}...{% endif %}
+                                    {% endif %}
+                                </p>
+                                <div class="d-flex gap-2">
+                                    <a href="{{ url_for('movies.view_movie', movie_id=movie.id) }}"
+                                       class="btn btn-sm btn-primary flex-fill">
+                                        <i class="fas fa-eye"></i> View
+                                    </a>
+                                    <button type="button" class="btn btn-sm btn-warning flex-fill"
+                                            data-bs-toggle="modal" data-bs-target="#editMovieModal{{ movie.id }}">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-danger flex-fill"
+                                            data-bs-toggle="modal" data-bs-target="#deleteMovieModal{{ movie.id }}">
+                                        <i class="fas fa-trash"></i> Delete
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>No movies in your collection yet. Search for a movie above!
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit and Delete Modals -->
+{% if movies %}
+{% for movie in movies %}
+<!-- Edit Modal -->
+<div class="modal fade" id="editMovieModal{{ movie.id }}" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title">
+                    <i class="fas fa-edit me-2"></i>Edit Movie
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('movies.edit_movie', movie_id=movie.id) }}">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="mb-3">
+                                <label for="title{{ movie.id }}" class="form-label">Title <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="title{{ movie.id }}" name="title"
+                                       value="{{ movie.title }}" required>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="year{{ movie.id }}" class="form-label">Year</label>
+                                <input type="text" class="form-control" id="year{{ movie.id }}" name="year"
+                                       value="{{ movie.year }}" maxlength="10">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="director{{ movie.id }}" class="form-label">Director</label>
+                                <input type="text" class="form-control" id="director{{ movie.id }}" name="director"
+                                       value="{{ movie.director }}">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label for="rated{{ movie.id }}" class="form-label">Rated</label>
+                                <input type="text" class="form-control" id="rated{{ movie.id }}" name="rated"
+                                       value="{{ movie.rated }}" maxlength="10">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label for="runtime{{ movie.id }}" class="form-label">Runtime</label>
+                                <input type="text" class="form-control" id="runtime{{ movie.id }}" name="runtime"
+                                       value="{{ movie.runtime }}">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="genre{{ movie.id }}" class="form-label">Genre</label>
+                        <input type="text" class="form-control" id="genre{{ movie.id }}" name="genre"
+                               value="{{ movie.genre }}">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="actors{{ movie.id }}" class="form-label">Actors</label>
+                        <input type="text" class="form-control" id="actors{{ movie.id }}" name="actors"
+                               value="{{ movie.actors }}">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="plot{{ movie.id }}" class="form-label">Plot</label>
+                        <textarea class="form-control" id="plot{{ movie.id }}" name="plot" rows="3">{{ movie.plot }}</textarea>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="mb-3">
+                                <label for="poster{{ movie.id }}" class="form-label">Poster URL</label>
+                                <input type="text" class="form-control" id="poster{{ movie.id }}" name="poster"
+                                       value="{{ movie.poster }}">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="imdb_rating{{ movie.id }}" class="form-label">IMDB Rating</label>
+                                <input type="text" class="form-control" id="imdb_rating{{ movie.id }}" name="imdb_rating"
+                                       value="{{ movie.imdb_rating }}">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="awards{{ movie.id }}" class="form-label">Awards</label>
+                        <input type="text" class="form-control" id="awards{{ movie.id }}" name="awards"
+                               value="{{ movie.awards }}">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i>Cancel
+                    </button>
+                    <button type="submit" class="btn btn-warning">
+                        <i class="fas fa-save me-1"></i>Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Modal -->
+<div class="modal fade" id="deleteMovieModal{{ movie.id }}" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Confirm Delete
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this movie from your collection?</p>
+                <div class="card bg-light">
+                    <div class="card-body">
+                        <strong>Title:</strong> {{ movie.title }}<br>
+                        <strong>Year:</strong> {{ movie.year }}<br>
+                        <strong>Director:</strong> {{ movie.director }}
+                        {% if movie.imdb_rating and movie.imdb_rating != 'N/A' %}
+                        <br><strong>IMDB:</strong> {{ movie.imdb_rating }}/10
+                        {% endif %}
+                    </div>
+                </div>
+                <p class="text-danger mt-3 mb-0">
+                    <i class="fas fa-exclamation-circle me-1"></i>This action cannot be undone!
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>Cancel
+                </button>
+                <a href="{{ url_for('movies.delete_movie', movie_id=movie.id) }}" class="btn btn-danger">
+                    <i class="fas fa-trash me-1"></i>Delete Movie
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% endif %}
+
+{% endblock %}

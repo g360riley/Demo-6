@@ -1,0 +1,217 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row mt-4">
+    <div class="col-md-12">
+        <h1><i class="fas fa-cloud-sun me-2"></i>Weather Tracking</h1>
+        <p class="lead">Track real-time weather for multiple cities</p>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h3><i class="fas fa-plus-circle me-2"></i>Add New Location</h3>
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="city" class="form-label">City <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="city" name="city"
+                               placeholder="e.g., Atlanta, New York, Los Angeles" required>
+                        <small class="text-muted">Live weather will be fetched automatically</small>
+                    </div>
+                    <div class="mb-3">
+                        <label for="state" class="form-label">State Code (Optional)</label>
+                        <input type="text" class="form-control" id="state" name="state"
+                               placeholder="e.g., GA, NY, CA" maxlength="2">
+                        <small class="text-muted">2-letter state code for more accurate results</small>
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-plus me-1"></i>Add Location with Live Weather
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h3><i class="fas fa-info-circle me-2"></i>How It Works</h3>
+                <ul>
+                    <li>Enter a city name (state code optional)</li>
+                    <li>Live weather data is fetched automatically from OpenWeatherMap</li>
+                    <li>Click "Update" to refresh individual location weather</li>
+                    <li>Use "Update All" to refresh all locations at once</li>
+                    <li>View temperature, humidity, wind speed, and conditions</li>
+                </ul>
+                {% if api_configured %}
+                <div class="alert alert-success">
+                    <i class="fas fa-check-circle me-1"></i><strong>API Configured!</strong> Your OpenWeatherMap API key is active.
+                </div>
+                {% else %}
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-1"></i><strong>API Key Not Configured!</strong> Please add your OpenWeatherMap API key to the .env file.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h3 class="mb-0"><i class="fas fa-list me-2"></i>Tracked Locations</h3>
+                    {% if weather_list %}
+                    <a href="{{ url_for('weather.update_all_weather') }}" class="btn btn-primary">
+                        <i class="fas fa-sync-alt me-1"></i>Update All
+                    </a>
+                    {% endif %}
+                </div>
+                {% if weather_list %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Location</th>
+                                <th>Conditions</th>
+                                <th>Temperature</th>
+                                <th>Feels Like</th>
+                                <th>Humidity</th>
+                                <th>Wind</th>
+                                <th>Range</th>
+                                <th>Last Updated</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for weather in weather_list %}
+                            <tr>
+                                <td>{{ weather.id }}</td>
+                                <td>
+                                    <strong class="text-primary">{{ weather.city }}</strong>
+                                    {% if weather.state %}
+                                        <br><small class="text-muted">{{ weather.state }}</small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if weather.icon %}
+                                        <img src="https://openweathermap.org/img/wn/{{ weather.icon }}@2x.png"
+                                             alt="Weather icon" style="width: 50px; height: 50px;">
+                                    {% endif %}
+                                    {% if weather.description %}
+                                        <br><small>{{ weather.description }}</small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <strong style="font-size: 1.2em;">{{ "%.1f"|format(weather.temperature) }}°F</strong>
+                                </td>
+                                <td>
+                                    {% if weather.feels_like %}
+                                        {{ "%.1f"|format(weather.feels_like) }}°F
+                                    {% else %}
+                                        <span class="text-muted">N/A</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if weather.humidity %}
+                                        <i class="fas fa-tint text-info"></i> {{ weather.humidity }}%
+                                    {% else %}
+                                        <span class="text-muted">N/A</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if weather.wind_speed %}
+                                        <i class="fas fa-wind text-secondary"></i> {{ "%.1f"|format(weather.wind_speed) }} mph
+                                    {% else %}
+                                        <span class="text-muted">N/A</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if weather.temp_min and weather.temp_max %}
+                                        <small>
+                                            L: {{ "%.1f"|format(weather.temp_min) }}°<br>
+                                            H: {{ "%.1f"|format(weather.temp_max) }}°
+                                        </small>
+                                    {% else %}
+                                        <span class="text-muted">N/A</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if weather.updated_at %}
+                                        <small>{{ weather.updated_at.strftime('%Y-%m-%d %H:%M') }}</small>
+                                    {% else %}
+                                        <small class="text-muted">Never</small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{{ url_for('weather.update_weather', weather_id=weather.id) }}"
+                                       class="btn btn-sm btn-success">
+                                        <i class="fas fa-sync-alt"></i> Update
+                                    </a>
+                                    <button type="button" class="btn btn-sm btn-danger"
+                                            data-bs-toggle="modal" data-bs-target="#deleteWeatherModal{{ weather.id }}">
+                                        <i class="fas fa-trash"></i> Delete
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>No locations tracked yet. Add your first location above!
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Modals -->
+{% if weather_list %}
+{% for weather in weather_list %}
+<div class="modal fade" id="deleteWeatherModal{{ weather.id }}" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Confirm Delete
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this weather location?</p>
+                <div class="card bg-light">
+                    <div class="card-body">
+                        <strong>Location:</strong> {{ weather.city }}{% if weather.state %}, {{ weather.state }}{% endif %}<br>
+                        <strong>Temperature:</strong> {{ "%.1f"|format(weather.temperature) }}°F<br>
+                        {% if weather.description %}
+                        <strong>Conditions:</strong> {{ weather.description }}
+                        {% endif %}
+                    </div>
+                </div>
+                <p class="text-danger mt-3 mb-0">
+                    <i class="fas fa-exclamation-circle me-1"></i>This action cannot be undone!
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>Cancel
+                </button>
+                <a href="{{ url_for('weather.delete_weather', weather_id=weather.id) }}" class="btn btn-danger">
+                    <i class="fas fa-trash me-1"></i>Delete Location
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% endif %}
+
+{% endblock %}

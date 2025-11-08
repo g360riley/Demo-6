@@ -1,0 +1,197 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row mt-4">
+    <div class="col-md-12">
+        <h1><i class="fas fa-chart-line me-2"></i>Stock Tickers</h1>
+        <p class="lead">Track live stock prices with API integration</p>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h3><i class="fas fa-plus-circle me-2"></i>Add New Ticker</h3>
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="ticker_symbol" class="form-label">Ticker Symbol <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="ticker_symbol" name="ticker_symbol"
+                               placeholder="e.g., AAPL, GOOGL, MSFT" required>
+                        <small class="text-muted">Live price will be fetched automatically</small>
+                    </div>
+                    <div class="mb-3">
+                        <label for="ticker_name" class="form-label">Company Name (Optional)</label>
+                        <input type="text" class="form-control" id="ticker_name" name="ticker_name"
+                               placeholder="e.g., Apple Inc.">
+                        <small class="text-muted">Leave blank to use ticker symbol as name</small>
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-plus me-1"></i>Add Ticker with Live Price
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h3><i class="fas fa-info-circle me-2"></i>How It Works</h3>
+                <ul>
+                    <li>Enter a stock ticker symbol (e.g., AAPL for Apple)</li>
+                    <li>Live prices are fetched automatically from Alpha Vantage</li>
+                    <li>Click "Update" to refresh individual ticker data</li>
+                    <li>Use "Update All" to refresh all tickers at once</li>
+                    <li>View price changes, volume, and last update time</li>
+                </ul>
+                {% if api_configured %}
+                <div class="alert alert-success">
+                    <i class="fas fa-check-circle me-1"></i><strong>API Configured!</strong> Your Alpha Vantage API key is active.
+                </div>
+                {% else %}
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-1"></i><strong>API Key Not Configured!</strong> Please add your Alpha Vantage API key to the .env file.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h3 class="mb-0"><i class="fas fa-list me-2"></i>All Tickers</h3>
+                    {% if tickers %}
+                    <a href="{{ url_for('tickers.update_all_tickers') }}" class="btn btn-primary">
+                        <i class="fas fa-sync-alt me-1"></i>Update All
+                    </a>
+                    {% endif %}
+                </div>
+                {% if tickers %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Symbol</th>
+                                <th>Name</th>
+                                <th>Price</th>
+                                <th>Change</th>
+                                <th>Change %</th>
+                                <th>Volume</th>
+                                <th>Last Updated</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for ticker in tickers %}
+                            <tr>
+                                <td>{{ ticker.id }}</td>
+                                <td><strong class="text-primary">{{ ticker.symbol }}</strong></td>
+                                <td>{{ ticker.name }}</td>
+                                <td><strong>${{ "%.2f"|format(ticker.price) }}</strong></td>
+                                <td>
+                                    {% if ticker.change_amount is not none %}
+                                        {% if ticker.change_amount >= 0 %}
+                                            <span class="text-success">+${{ "%.2f"|format(ticker.change_amount) }}</span>
+                                        {% else %}
+                                            <span class="text-danger">${{ "%.2f"|format(ticker.change_amount) }}</span>
+                                        {% endif %}
+                                    {% else %}
+                                        <span class="text-muted">N/A</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if ticker.change_percent %}
+                                        {% if ticker.change_amount >= 0 %}
+                                            <span class="badge bg-success">{{ ticker.change_percent }}</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">{{ ticker.change_percent }}</span>
+                                        {% endif %}
+                                    {% else %}
+                                        <span class="text-muted">N/A</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if ticker.volume %}
+                                        {{ "{:,}".format(ticker.volume) }}
+                                    {% else %}
+                                        <span class="text-muted">N/A</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if ticker.last_updated %}
+                                        <small>{{ ticker.last_updated.strftime('%Y-%m-%d %H:%M') }}</small>
+                                    {% else %}
+                                        <small class="text-muted">Never</small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{{ url_for('tickers.update_ticker', ticker_id=ticker.id) }}"
+                                       class="btn btn-sm btn-success">
+                                        <i class="fas fa-sync-alt"></i> Update
+                                    </a>
+                                    <button type="button" class="btn btn-sm btn-danger"
+                                            data-bs-toggle="modal" data-bs-target="#deleteModal{{ ticker.id }}">
+                                        <i class="fas fa-trash"></i> Delete
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>No tickers found. Add your first ticker above!
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Modals -->
+{% if tickers %}
+{% for ticker in tickers %}
+<div class="modal fade" id="deleteModal{{ ticker.id }}" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Confirm Delete
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this ticker?</p>
+                <div class="card bg-light">
+                    <div class="card-body">
+                        <strong>Symbol:</strong> {{ ticker.symbol }}<br>
+                        <strong>Name:</strong> {{ ticker.name }}<br>
+                        <strong>Price:</strong> ${{ "%.2f"|format(ticker.price) }}
+                    </div>
+                </div>
+                <p class="text-danger mt-3 mb-0">
+                    <i class="fas fa-exclamation-circle me-1"></i>This action cannot be undone!
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>Cancel
+                </button>
+                <a href="{{ url_for('tickers.delete_ticker', ticker_id=ticker.id) }}" class="btn btn-danger">
+                    <i class="fas fa-trash me-1"></i>Delete Ticker
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% endif %}
+
+{% endblock %}

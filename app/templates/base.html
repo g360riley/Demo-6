@@ -113,6 +113,68 @@
             border: none;
             font-weight: 600;
         }
+
+        .footer {
+            background: linear-gradient(90deg, var(--gcsu-blue) 0%, var(--gcsu-green) 100%);
+            color: white;
+            padding: 3rem 0 1.5rem 0;
+            margin-top: 5rem;
+            box-shadow: 0 -4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .footer h5 {
+            color: white;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .footer a {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .footer a:hover {
+            color: white;
+            transform: translateX(5px);
+        }
+
+        .footer-links {
+            list-style: none;
+            padding: 0;
+        }
+
+        .footer-links li {
+            margin-bottom: 0.5rem;
+        }
+
+        .footer-links li a {
+            display: inline-block;
+        }
+
+        .footer-bottom {
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            text-align: center;
+        }
+
+        .social-icons a {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            line-height: 40px;
+            text-align: center;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            margin: 0 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .social-icons a:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-3px);
+        }
     </style>
 </head>
 <body>
@@ -166,6 +228,62 @@
         
         {% block content %}{% endblock %}
     </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4 mb-4">
+                    <h5><i class="fas fa-user-circle me-2"></i>Gage Riley</h5>
+                    <p class="mb-3">Full-stack developer specializing in web applications with API integrations and modern UI/UX design.</p>
+                    <div class="social-icons">
+                        <a href="https://github.com/g360riley" target="_blank" title="GitHub">
+                            <i class="fab fa-github"></i>
+                        </a>
+                        <a href="https://linkedin.com" target="_blank" title="LinkedIn">
+                            <i class="fab fa-linkedin-in"></i>
+                        </a>
+                        <a href="mailto:gager@gcsu.edu" title="Email">
+                            <i class="fas fa-envelope"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="col-md-4 mb-4">
+                    <h5><i class="fas fa-link me-2"></i>Quick Links</h5>
+                    <ul class="footer-links">
+                        <li><a href="{{ url_for('index') }}"><i class="fas fa-home me-2"></i>Home</a></li>
+                        <li><a href="{{ url_for('about') }}"><i class="fas fa-info-circle me-2"></i>About</a></li>
+                        <li><a href="{{ url_for('tickers.show_tickers') }}"><i class="fas fa-chart-line me-2"></i>Stock Tickers</a></li>
+                        <li><a href="{{ url_for('weather.show_weather') }}"><i class="fas fa-cloud-sun me-2"></i>Weather</a></li>
+                        <li><a href="{{ url_for('movies.show_movies') }}"><i class="fas fa-film me-2"></i>Movies</a></li>
+                        <li><a href="{{ url_for('chatbot.show_chatbot') }}"><i class="fas fa-robot me-2"></i>AI Chatbot</a></li>
+                    </ul>
+                </div>
+
+                <div class="col-md-4 mb-4">
+                    <h5><i class="fas fa-code me-2"></i>Technologies</h5>
+                    <p class="mb-2"><i class="fab fa-python me-2"></i>Flask & Python</p>
+                    <p class="mb-2"><i class="fab fa-bootstrap me-2"></i>Bootstrap 5</p>
+                    <p class="mb-2"><i class="fas fa-database me-2"></i>MySQL Database</p>
+                    <p class="mb-2"><i class="fas fa-plug me-2"></i>API Integrations</p>
+                    <ul class="footer-links mt-3" style="font-size: 0.9rem;">
+                        <li>Alpha Vantage API</li>
+                        <li>OpenWeatherMap API</li>
+                        <li>OMDB API</li>
+                        <li>Groq AI API</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p class="mb-1">&copy; 2025 Gage Riley. All rights reserved.</p>
+                <p class="mb-0" style="font-size: 0.9rem; opacity: 0.8;">
+                    Built with <i class="fas fa-heart text-danger"></i> using Flask & Bootstrap
+                </p>
+            </div>
+        </div>
+    </footer>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

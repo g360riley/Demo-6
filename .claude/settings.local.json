@@ -15,7 +15,16 @@
       "WebFetch(domain:www.brandcolorcode.com)",
       "Bash(git init:*)",
       "Bash(git remote add:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "WebFetch(domain:fullstackpython.org)",
+      "Bash(dir:*)",
+      "Bash(tasklist:*)",
+      "Bash(findstr:*)",
+      "Bash(pip show:*)",
+      "Bash(requirements.txt)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nAdd comprehensive API integrations and enhance UI\n\nMajor Features:\n- Stock Tickers: Alpha Vantage API integration with live prices, changes, and volume\n- Weather: OpenWeatherMap API with conditions, humidity, wind speed, and icons\n- Movies: OMDB API with full movie details, ratings, and posters\n- AI Chatbot: Groq API with multiple AI models (Llama 3.3, Mixtral, Gemma)\n\nEnhancements:\n- Enhanced database schemas with additional fields for all blueprints\n- Modal dialogs for delete confirmations (tickers, weather, movies, chatbot)\n- Modal-based edit form for movies (no page navigation)\n- Model selection for AI chatbot with 4 different models\n- Update All functionality for tickers and weather\n- Dynamic API configuration status indicators\n- Color-coded displays (green for gains, red for losses)\n- Professional UI with Bootstrap modals and improved layouts\n\nTechnical Updates:\n- Upgraded Groq library from 0.11.0 to 0.33.0\n- Updated to current Groq AI models (deprecated models replaced)\n- Added database migration script (fix_database_schema.py)\n- Helper functions for all API integrations with error handling\n- Updated website title to \"Gage Riley\"\n\nAPI Keys Configured:\n- Alpha Vantage (Stock data)\n- OpenWeatherMap (Weather data)\n- OMDB (Movie data)\n- Groq (AI Chatbot)\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git config:*)",
+      "Bash(git push)"
     ],
     "deny": [],
     "ask": []

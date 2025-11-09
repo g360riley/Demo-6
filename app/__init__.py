@@ -6,13 +6,11 @@ app = create_app()
 app.secret_key = 'your-secret'  # Replace with an environment
 
 # Register Blueprints
-from app.blueprints.examples import examples
 from app.blueprints.tickers import tickers
 from app.blueprints.weather import weather
 from app.blueprints.movies import movies
 from app.blueprints.chatbot import chatbot
 
-app.register_blueprint(examples, url_prefix='/example')
 app.register_blueprint(tickers, url_prefix='/tickers')
 app.register_blueprint(weather, url_prefix='/weather')
 app.register_blueprint(movies, url_prefix='/movies')
